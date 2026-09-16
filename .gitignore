@@ -1,0 +1,24 @@
+# Секреты
+.env
+
+# Виртуальное окружение
+venv/
+__pycache__/
+*.pyc
+
+# Локальные БД
+*.db
+ai_cache.db
+chroma_db/
+
+# Логи
+logs/
+*.log
+
+# Скриншоты (тяжёлые)
+frontend/screenshots/*.png
+frontend/screenshots/*.jpg
+
+# Системные
+.DS_Store
+*.swp

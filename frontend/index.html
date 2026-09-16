@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PM Assistant — Kaiten Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ШАПКА -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="logo">🤖</span>
+        <div>
+          <div class="brand-title">AI PM Assistant</div>
+          <div class="brand-sub">Аналитика проектов из Kaiten + рекомендации от AI</div>
+        </div>
+      </div>
+      <a href="https://ya-zelinsky.ru" class="btn-back">← На главную</a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- БЛОК 1: AI-СОВЕТНИК -->
+    <section class="section ai-block">
+      <div class="section-head">
+        <h2>✨ AI-советник</h2>
+        <button id="btn-ai" class="btn-primary">Получить рекомендации</button>
+      </div>
+      <div id="ai-status" class="ai-status">Нажмите кнопку — AI проанализирует метрики и даст советы</div>
+      <div id="ai-advice" class="ai-advice"></div>
+    </section>
+
+    <!-- БЛОК 2: КЛЮЧЕВЫЕ МЕТРИКИ -->
+    <!-- БЛОК: ДИАГРАММА СГОРАНИЯ -->
+    <section class="section">
+      <h2>🔥 Диаграмма сгорания (14 дней)</h2>
+      <div class="chart-card">
+        <canvas id="chart-burndown" height="120"></canvas>
+      </div>
+    </section>
+    <section class="section">
+      <h2>📦 Ключевые метрики</h2>
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-value" id="m-total">—</div>
+          <div class="metric-label">Всего задач</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value accent-orange" id="m-overdue">—</div>
+          <div class="metric-label">Просрочено</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value accent-blue" id="m-wip">—</div>
+          <div class="metric-label">В работе (WIP)</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value accent-green" id="m-closed">—</div>
+          <div class="metric-label">Закрыто за 7 дней</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- БЛОК 3: FLOW-МЕТРИКИ -->
+    <section class="section">
+      <h2>📈 Flow-метрики</h2>
+      <div class="flow-grid">
+        <div class="flow-card">
+          <div class="flow-label">Velocity (7 дн)</div>
+          <div class="flow-value" id="f-velocity">—</div>
+          <div class="flow-hint">задач закрыто</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-label">Cycle Time</div>
+          <div class="flow-value" id="f-cycle">—</div>
+          <div class="flow-hint">дней от старта до финиша</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-label">Predictability</div>
+          <div class="flow-value" id="f-predict">—</div>
+          <div class="flow-hint">закрыто в срок</div>
+        </div>
+        <div class="flow-card">
+          <div class="flow-label">Прогноз релиза</div>
+          <div class="flow-value" id="f-forecast">—</div>
+          <div class="flow-hint">при текущем темпе</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- БЛОК 4: ГРАФИК ПО КОЛОНКАМ -->
+    <section class="section">
+      <h2>📊 Задачи по колонкам</h2>
+      <div class="chart-card">
+        <canvas id="chart-columns" height="120"></canvas>
+      </div>
+    </section>
+
+    <!-- БЛОК 5: НАГРУЗКА КОМАНДЫ -->
+    <section class="section">
+      <h2>👥 Нагрузка команды</h2>
+      <div id="workload-list" class="workload-list"></div>
+    </section>
+
+    <!-- БЛОК 6: ПРОСРОЧЕННЫЕ ЗАДАЧИ -->
+    <section class="section">
+      <h2>⚠️ Просроченные задачи</h2>
+      <div id="overdue-list" class="overdue-list"></div>
+    </section>
+
+    <!-- БЛОК 7: КАРУСЕЛЬ СКРИНШОТОВ -->
+    <section class="section">
+      <h2>📸 Как это выглядит в Kaiten</h2>
+      <div class="carousel" id="carousel">
+        <div class="carousel-placeholder">Скриншоты появятся здесь</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ФУТЕР -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-text">
+        Сделано на Python, FastAPI, Kaiten API и Timeweb AI
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/pradyf" target="_blank">🐙 GitHub</a>
+        <a href="https://t.me/Praddy1" target="_blank">💬 Telegram</a>
+        <a href="mailto:prady1@mail.ru">✉️ Email</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

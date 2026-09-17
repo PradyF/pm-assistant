@@ -65,9 +65,7 @@ async function loadBurndown() {
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
         renderBurndown(data);
-    } catch (e) {
-        console.error('Ошибка загрузки burndown:', e);
-    }
+    } catch (e) { console.error('Ошибка burndown:', e); }
 }
 
 async function loadAiStats() {
@@ -76,6 +74,15 @@ async function loadAiStats() {
         if (!r.ok) return;
         const data = await r.json();
         renderAiLimit(data);
+    } catch (e) { /* тихо */ }
+}
+
+async function loadChatStats() {
+    try {
+        const r = await fetch(API_BASE + '/api/chat-stats');
+        if (!r.ok) return;
+        const data = await r.json();
+        renderChatLimit(data);
     } catch (e) { /* тихо */ }
 }
 
@@ -113,6 +120,7 @@ function renderFlow(data) {
 // ============================================================
 
 let columnsChart = null;
+
 function renderChart(data) {
     const byColumn = (data.metrics && data.metrics.by_column) || {};
     const orderedLabels = COLUMN_ORDER.filter(col => col in byColumn);
@@ -155,10 +163,11 @@ function renderChart(data) {
 
 
 // ============================================================
-// 4. ДИАГРАММА СГОРАНИЯ
+// 4. ДИАГРАММА СГОРАНИЯ (адаптивная под мобильные)
 // ============================================================
 
 let burndownChart = null;
+
 function renderBurndown(data) {
     const ctx = $('chart-burndown');
     if (!ctx) return;
@@ -204,12 +213,39 @@ function renderBurndown(data) {
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             animation: { duration: 2000, easing: 'easeOutQuart' },
-            plugins: { legend: { labels: { color: 'rgba(255,255,255,0.6)', font: { size: 12 } } } },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'rgba(255,255,255,0.6)',
+                        font: { size: 11 },
+                        boxWidth: 12
+                    }
+                }
+            },
             scales: {
-                x: { ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10 } }, grid: { display: false } },
-                y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 11 } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                x: {
+                    ticks: {
+                        color: 'rgba(255,255,255,0.4)',
+                        font: { size: 9 },
+                        maxRotation: 45,
+                        minRotation: 0,
+                        autoSkip: true,
+                        autoSkipPadding: 15
+                    },
+                    grid: { display: false }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: 'rgba(255,255,255,0.4)',
+                        font: { size: 10 },
+                        stepSize: 5,
+                        precision: 0
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
             }
         }
     });
@@ -294,10 +330,7 @@ function renderOverdue(data) {
 function renderAiLimit(stats) {
     const el = $('ai-limit');
     if (!el) return;
-    if (!stats.enabled) {
-        el.textContent = '';
-        return;
-    }
+    if (!stats.enabled) { el.textContent = ''; return; }
     const used = stats.ip_used;
     const limit = stats.ip_limit;
     el.textContent = `Осталось запросов сегодня: ${limit - used} из ${limit}`;
@@ -335,7 +368,6 @@ async function askAI() {
         status.style.display = 'none';
         adviceBox.textContent = data.advice || 'Пустой ответ';
         adviceBox.classList.add('visible');
-
         btn.textContent = '✨ Обновить совет';
         loadAiStats();
     } catch (e) {
@@ -351,13 +383,22 @@ async function askAI() {
 // 8. ЧАТ-АГЕНТ
 // ============================================================
 
+function renderChatLimit(stats) {
+    const el = $('chat-limit');
+    if (!el) return;
+    if (!stats.enabled) { el.textContent = ''; return; }
+    const used = stats.ip_used;
+    const limit = stats.ip_limit;
+    const left = limit - used;
+    el.textContent = `Команд сегодня: ${used} из ${limit} · осталось ${left}`;
+    el.style.color = left <= 3 ? '#ff6b6b' : (left <= 10 ? '#ffd700' : 'rgba(255,255,255,0.3)');
+}
+
 function addChatMessage(text, type = 'bot') {
     const history = $('chat-history');
     if (!history) return;
-
     const hint = history.querySelector('.chat-hint');
     if (hint) hint.remove();
-
     const msg = document.createElement('div');
     msg.className = `chat-msg ${type}`;
     msg.textContent = text;
@@ -368,7 +409,6 @@ function addChatMessage(text, type = 'bot') {
 
 async function sendChatCommand(text) {
     if (!text || !text.trim()) return;
-
     const input = $('chat-input');
     const sendBtn = $('chat-send');
 
@@ -385,21 +425,22 @@ async function sendChatCommand(text) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: text })
         });
-
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const data = await r.json();
-
         thinking.remove();
 
         if (data.parsed && data.parsed.action === 'error') {
             addChatMessage('❌ ' + data.parsed.reason, 'error');
+            loadChatStats();
             return;
         }
 
         addChatMessage(data.result || 'Пустой ответ', 'bot');
+        loadChatStats();
     } catch (e) {
         thinking.remove();
         addChatMessage('❌ Ошибка: ' + e.message, 'error');
+        loadChatStats();
     } finally {
         input.disabled = false;
         sendBtn.disabled = false;
@@ -410,34 +451,18 @@ async function sendChatCommand(text) {
 function initChat() {
     const sendBtn = $('chat-send');
     const input = $('chat-input');
-
-    if (sendBtn) {
-        sendBtn.addEventListener('click', () => sendChatCommand(input.value));
-    }
-    if (input) {
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                sendChatCommand(input.value);
-            }
-        });
-    }
-
+    if (sendBtn) sendBtn.addEventListener('click', () => sendChatCommand(input.value));
+    if (input) input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); sendChatCommand(input.value); }
+    });
     document.querySelectorAll('.chat-quick').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const cmd = btn.getAttribute('data-cmd');
-            sendChatCommand(cmd);
-        });
+        btn.addEventListener('click', () => sendChatCommand(btn.getAttribute('data-cmd')));
     });
 }
 
 
 // ============================================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================================
-
-// ============================================================
-// 9. ГЛАЗА РОБОТА (следят за курсором)
+// 9. ГЛАЗА РОБОТА
 // ============================================================
 
 function initRobotEyes() {
@@ -448,53 +473,89 @@ function initRobotEyes() {
 
     const MAX_OFFSET = 2.5;
 
-    document.addEventListener('mousemove', (e) => {
+    function move(clientX, clientY) {
         const rect = robot.getBoundingClientRect();
-        const robotCenterX = rect.left + rect.width / 2;
-        const robotCenterY = rect.top + rect.height / 2;
-
-        const dx = e.clientX - robotCenterX;
-        const dy = e.clientY - robotCenterY;
+        const dx = clientX - (rect.left + rect.width / 2);
+        const dy = clientY - (rect.top + rect.height / 2);
         const angle = Math.atan2(dy, dx);
         const distance = Math.min(Math.hypot(dx, dy), 200) / 200;
-
         const offsetX = Math.cos(angle) * MAX_OFFSET * distance;
         const offsetY = Math.sin(angle) * MAX_OFFSET * distance;
-
         pupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
         pupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-    });
+    }
 
-    // На мобильных — глаза смотрят в центр при тапе
+    document.addEventListener('mousemove', (e) => move(e.clientX, e.clientY));
     document.addEventListener('touchmove', (e) => {
         const touch = e.touches[0];
-        if (!touch) return;
-        const rect = robot.getBoundingClientRect();
-        const dx = touch.clientX - (rect.left + rect.width / 2);
-        const dy = touch.clientY - (rect.top + rect.height / 2);
-        const angle = Math.atan2(dy, dx);
-        const distance = Math.min(Math.hypot(dx, dy), 200) / 200;
-        const offsetX = Math.cos(angle) * MAX_OFFSET * distance;
-        const offsetY = Math.sin(angle) * MAX_OFFSET * distance;
-        pupilLeft.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
-        pupilRight.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+        if (touch) move(touch.clientX, touch.clientY);
     }, { passive: true });
 }
 
 
 // ============================================================
-// 10. РАСКРЫВАЮЩИЙСЯ СПИСОК ВОЗМОЖНОСТЕЙ
+// 10. РАСКРЫВАЮЩИЙСЯ СПИСОК
 // ============================================================
 
 function initCapabilities() {
     const toggle = $('cap-toggle');
     const list = $('cap-list');
     if (!toggle || !list) return;
-
     toggle.addEventListener('click', () => {
-        const isOpen = list.classList.contains('open');
         list.classList.toggle('open');
         toggle.classList.toggle('open');
+    });
+}
+
+
+// ============================================================
+// 11. LIGHTBOX
+// ============================================================
+
+function initLightbox() {
+    const items = document.querySelectorAll('.gallery-item');
+    const lightbox = $('lightbox');
+    const img = $('lightbox-img');
+    const counter = $('lightbox-counter');
+    const closeBtn = $('lightbox-close');
+    const prevBtn = $('lightbox-prev');
+    const nextBtn = $('lightbox-next');
+    if (!lightbox || items.length === 0) return;
+
+    let current = 0;
+    const total = items.length;
+
+    function show(index) {
+        current = (index + total) % total;
+        const item = items[current];
+        const src = item.querySelector('img').getAttribute('src');
+        const alt = item.querySelector('img').getAttribute('alt') || '';
+        img.src = src;
+        img.alt = alt;
+        counter.textContent = `${current + 1} / ${total}`;
+    }
+
+    function open(index) {
+        show(index);
+        lightbox.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function close() {
+        lightbox.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    items.forEach((item, idx) => item.addEventListener('click', () => open(idx)));
+    closeBtn.addEventListener('click', close);
+    prevBtn.addEventListener('click', (e) => { e.stopPropagation(); show(current - 1); });
+    nextBtn.addEventListener('click', (e) => { e.stopPropagation(); show(current + 1); });
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) close(); });
+    document.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('open')) return;
+        if (e.key === 'Escape') close();
+        if (e.key === 'ArrowLeft') show(current - 1);
+        if (e.key === 'ArrowRight') show(current + 1);
     });
 }
 
@@ -508,9 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
     loadBurndown();
     loadAiStats();
+    loadChatStats();
     initChat();
     initRobotEyes();
     initCapabilities();
+    initLightbox();
 
     const btn = $('btn-ai');
     if (btn) btn.addEventListener('click', () => askAI());

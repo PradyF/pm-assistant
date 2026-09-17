@@ -9,11 +9,27 @@
 </head>
 <body>
 
-  <!-- ШАПКА -->
   <header class="header">
     <div class="header-inner">
       <div class="brand">
-        <span class="logo">🤖</span>
+        <div class="robot" id="robot">
+          <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffd700"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+            </defs>
+            <rect x="12" y="14" width="40" height="34" rx="10" fill="url(#robotGrad)" opacity="0.15" stroke="url(#robotGrad)" stroke-width="2"/>
+            <line x1="32" y1="14" x2="32" y2="6" stroke="url(#robotGrad)" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="32" cy="5" r="2.5" fill="#ffd700"/>
+            <circle cx="23" cy="32" r="7" fill="rgba(0,0,0,0.4)" stroke="url(#robotGrad)" stroke-width="1.5"/>
+            <circle cx="41" cy="32" r="7" fill="rgba(0,0,0,0.4)" stroke="url(#robotGrad)" stroke-width="1.5"/>
+            <circle class="pupil" id="pupil-left" cx="23" cy="32" r="3" fill="#00d4ff"/>
+            <circle class="pupil" id="pupil-right" cx="41" cy="32" r="3" fill="#00d4ff"/>
+            <path d="M 24 42 Q 32 46 40 42" stroke="url(#robotGrad)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
         <div>
           <div class="brand-title">AI PM Assistant</div>
           <div class="brand-sub">Аналитика проектов из Kaiten + рекомендации от AI</div>
@@ -25,7 +41,19 @@
 
   <main class="container">
 
-    <!-- БЛОК 1: AI-СОВЕТНИК -->
+    <section class="section intro-block">
+      <h1>Управление проектами через AI</h1>
+      <p>
+        Это <strong>демо-проект</strong>, который показывает, как можно объединить таск-трекер
+        и искусственный интеллект в одном инструменте. Работает с любым сервисом, у которого
+        есть API: <strong>Kaiten, Jira, Asana, Trello, Bitrix24</strong> и другие.
+      </p>
+      <p>
+        Дашборд, AI-советник и командный чат — всё работает в реальном времени
+        на данных из <strong>Kaiten</strong>. Попробуйте: спросите AI или напишите команду.
+      </p>
+    </section>
+
     <section class="section ai-block">
       <div class="section-head">
         <h2>✨ AI-советник</h2>
@@ -33,106 +61,164 @@
       </div>
       <div id="ai-status" class="ai-status">Нажмите кнопку — AI проанализирует метрики и даст советы</div>
       <div id="ai-advice" class="ai-advice"></div>
+      <div id="ai-limit" class="ai-limit"></div>
     </section>
 
-    <!-- БЛОК 2: КЛЮЧЕВЫЕ МЕТРИКИ -->
-    <!-- БЛОК: ДИАГРАММА СГОРАНИЯ -->
     <section class="section">
-      <h2>🔥 Диаграмма сгорания (14 дней)</h2>
-      <div class="chart-card">
-        <canvas id="chart-burndown" height="120"></canvas>
+      <h2>💬 Команды AI-агенту</h2>
+      <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 20px;">
+        Напишите команду простым языком — AI поймёт и выполнит её в Kaiten.
+      </p>
+
+      <div class="chat-card">
+        <div class="chat-history" id="chat-history">
+          <div class="chat-hint">
+            <strong>Попробуйте:</strong>
+            <button class="chat-quick" data-cmd="Покажи задачи Маши">Покажи задачи Маши</button>
+            <button class="chat-quick" data-cmd="Покажи просроченные">Просроченные</button>
+            <button class="chat-quick" data-cmd="Покажи колонку Ревью">Что в Ревью?</button>
+            <button class="chat-quick" data-cmd="Закрой задачу «Настроить API интеграции с 1С»">Закрой задачу</button>
+            <button class="chat-quick" data-cmd="Добавь задачу «Нарисовать картошку» на Ивана">Добавь задачу Ивану</button>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input id="chat-input" type="text" placeholder="Напишите команду..." autocomplete="off" />
+          <button id="chat-send" class="btn-primary">Выполнить</button>
+        </div>
+        <div id="chat-limit" class="chat-limit"></div>
+
+        <div class="chat-capabilities">
+          <button class="capabilities-toggle" id="cap-toggle">
+            <span>📖 Полный список возможностей AI-ассистента</span>
+            <span class="cap-arrow">▼</span>
+          </button>
+          <div class="capabilities-list" id="cap-list">
+            <div class="cap-item"><span class="cap-icon">📋</span><div><strong>Показать задачи человека</strong><div class="cap-example">«Покажи задачи Маши»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">⚠️</span><div><strong>Просроченные задачи</strong><div class="cap-example">«Покажи просроченные»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">📂</span><div><strong>Задачи в колонке</strong><div class="cap-example">«Что в Ревью?»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">✅</span><div><strong>Закрыть задачу</strong><div class="cap-example">«Закрой задачу "Дизайн-система"»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">🔄</span><div><strong>Переместить задачу в колонку</strong><div class="cap-example">«Перенеси "API" в работу»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">➕</span><div><strong>Создать новую задачу</strong><div class="cap-example">«Добавь задачу "Помыть кота" на Сашу»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">📅</span><div><strong>Изменить срок задачи</strong><div class="cap-example">«Перенеси срок "Отчёт" на 10 октября»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">📅</span><div><strong>Создать задачу со сроком</strong><div class="cap-example">«Поставь Ивану "Проверить лендинг" до 15 ноября»</div></div></div>
+            <div class="cap-item"><span class="cap-icon">👥</span><div><strong>Добавить участника в задачу</strong><div class="cap-example">«Добавь Ивана в задачу "Подготовить ТЗ"»</div></div></div>
+          </div>
+        </div>
       </div>
     </section>
+
     <section class="section">
       <h2>📦 Ключевые метрики</h2>
       <div class="metrics-grid">
-        <div class="metric-card">
-          <div class="metric-value" id="m-total">—</div>
-          <div class="metric-label">Всего задач</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value accent-orange" id="m-overdue">—</div>
-          <div class="metric-label">Просрочено</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value accent-blue" id="m-wip">—</div>
-          <div class="metric-label">В работе (WIP)</div>
-        </div>
-        <div class="metric-card">
-          <div class="metric-value accent-green" id="m-closed">—</div>
-          <div class="metric-label">Закрыто за 7 дней</div>
-        </div>
+        <div class="metric-card"><div class="metric-value" id="m-total">—</div><div class="metric-label">Всего задач</div></div>
+        <div class="metric-card"><div class="metric-value accent-orange" id="m-overdue">—</div><div class="metric-label">Просрочено</div></div>
+        <div class="metric-card"><div class="metric-value accent-blue" id="m-wip">—</div><div class="metric-label">В работе (WIP)</div></div>
+        <div class="metric-card"><div class="metric-value accent-green" id="m-closed">—</div><div class="metric-label">Закрыто за 7 дней</div></div>
       </div>
     </section>
 
-    <!-- БЛОК 3: FLOW-МЕТРИКИ -->
     <section class="section">
       <h2>📈 Flow-метрики</h2>
       <div class="flow-grid">
-        <div class="flow-card">
-          <div class="flow-label">Velocity (7 дн)</div>
-          <div class="flow-value" id="f-velocity">—</div>
-          <div class="flow-hint">задач закрыто</div>
-        </div>
-        <div class="flow-card">
-          <div class="flow-label">Cycle Time</div>
-          <div class="flow-value" id="f-cycle">—</div>
-          <div class="flow-hint">дней от старта до финиша</div>
-        </div>
-        <div class="flow-card">
-          <div class="flow-label">Predictability</div>
-          <div class="flow-value" id="f-predict">—</div>
-          <div class="flow-hint">закрыто в срок</div>
-        </div>
-        <div class="flow-card">
-          <div class="flow-label">Прогноз релиза</div>
-          <div class="flow-value" id="f-forecast">—</div>
-          <div class="flow-hint">при текущем темпе</div>
-        </div>
+        <div class="flow-card"><div class="flow-label">Velocity (7 дн)</div><div class="flow-value" id="f-velocity">—</div><div class="flow-hint">задач закрыто</div></div>
+        <div class="flow-card"><div class="flow-label">Застрявшие</div><div class="flow-value" id="f-cycle">—</div><div class="flow-hint">просрочено в работе</div></div>
+        <div class="flow-card"><div class="flow-label">Predictability</div><div class="flow-value" id="f-predict">—</div><div class="flow-hint">закрыто в срок</div></div>
+        <div class="flow-card"><div class="flow-label">Прогноз релиза</div><div class="flow-value" id="f-forecast">—</div><div class="flow-hint">при текущем темпе</div></div>
       </div>
     </section>
 
-    <!-- БЛОК 4: ГРАФИК ПО КОЛОНКАМ -->
+    <section class="section">
+      <h2>🔥 Диаграмма сгорания (14 дней)</h2>
+      <div class="chart-card"><canvas id="chart-burndown" style="height: 200px;"></canvas></div>
+    </section>
+
     <section class="section">
       <h2>📊 Задачи по колонкам</h2>
-      <div class="chart-card">
-        <canvas id="chart-columns" height="120"></canvas>
-      </div>
+      <div class="chart-card"><canvas id="chart-columns" height="120"></canvas></div>
     </section>
 
-    <!-- БЛОК 5: НАГРУЗКА КОМАНДЫ -->
     <section class="section">
       <h2>👥 Нагрузка команды</h2>
       <div id="workload-list" class="workload-list"></div>
     </section>
 
-    <!-- БЛОК 6: ПРОСРОЧЕННЫЕ ЗАДАЧИ -->
     <section class="section">
       <h2>⚠️ Просроченные задачи</h2>
       <div id="overdue-list" class="overdue-list"></div>
     </section>
 
-    <!-- БЛОК 7: КАРУСЕЛЬ СКРИНШОТОВ -->
     <section class="section">
       <h2>📸 Как это выглядит в Kaiten</h2>
-      <div class="carousel" id="carousel">
-        <div class="carousel-placeholder">Скриншоты появятся здесь</div>
+      <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-bottom: 20px;">
+        Кликните на скриншот, чтобы увеличить.
+      </p>
+      <div class="gallery" id="gallery">
+        <div class="gallery-item" data-index="0">
+          <img src="screenshots/k1.jpg" alt="Доска Kaiten с задачами" loading="lazy">
+          <div class="gallery-caption">Доска Kaiten с задачами</div>
+        </div>
+        <div class="gallery-item" data-index="1">
+          <img src="screenshots/k2.jpg" alt="Карточка с ответственным и участниками" loading="lazy">
+          <div class="gallery-caption">Карточка с ответственным и участниками</div>
+        </div>
+        <div class="gallery-item" data-index="2">
+          <img src="screenshots/k3.jpg" alt="Дашборд метрик" loading="lazy">
+          <div class="gallery-caption">Дашборд метрик</div>
+        </div>
+        <div class="gallery-item" data-index="3">
+          <img src="screenshots/k4.jpg" alt="AI-советник и чат-агент" loading="lazy">
+          <div class="gallery-caption">AI-советник и чат-агент</div>
+        </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ФУТЕР -->
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lightbox-close">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lightbox-prev">‹</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="">
+    <button class="lightbox-nav lightbox-next" id="lightbox-next">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+  </div>
+
   <footer class="footer">
     <div class="footer-inner">
-      <div class="footer-text">
-        Сделано на Python, FastAPI, Kaiten API и Timeweb AI
+
+      <div class="footer-contacts">
+        <h3 class="footer-title">Контакты</h3>
+
+        <a href="https://github.com/PradyF/pm-assistant" target="_blank" class="contact-row">
+          <span class="contact-icon">🐙</span>
+          <span class="contact-label">GitHub</span>
+          <span class="contact-value">Этот проект на GitHub</span>
+        </a>
+
+        <a href="mailto:prady1@mail.ru" class="contact-row">
+          <span class="contact-icon">✉️</span>
+          <span class="contact-label">Email</span>
+          <span class="contact-value">prady1@mail.ru</span>
+        </a>
+
+        <a href="https://t.me/Praddy1" target="_blank" class="contact-row">
+          <span class="contact-icon">💬</span>
+          <span class="contact-label">Telegram</span>
+          <span class="contact-value">@Praddy1</span>
+        </a>
+
+        <a href="https://hh.ru/resume/157a19afff0f5433fa0039ed1f797a35734e79" target="_blank" class="contact-row">
+          <span class="contact-icon">📄</span>
+          <span class="contact-label">HeadHunter</span>
+          <span class="contact-value">Резюме на HH.ru</span>
+        </a>
+
       </div>
-      <div class="footer-links">
-        <a href="https://github.com/pradyf" target="_blank">🐙 GitHub</a>
-        <a href="https://t.me/Praddy1" target="_blank">💬 Telegram</a>
-        <a href="mailto:prady1@mail.ru">✉️ Email</a>
+
+      <div class="footer-bottom">
+        Сделано на Python · FastAPI · Kaiten API · Timeweb AI<br>
+        <span style="opacity:0.6;">При поддержке AI-ассистента</span>
       </div>
+
     </div>
   </footer>
 
